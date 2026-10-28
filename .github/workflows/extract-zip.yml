@@ -3,7 +3,6 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
-  workflows: write
 jobs:
   extract:
     runs-on: ubuntu-latest
@@ -12,11 +11,8 @@ jobs:
       - name: Extract archive
         run: |
           set -e
-          ls -la
           mkdir -p /tmp/extracted
           unzip -o HTube-v1.zip -d /tmp/extracted
-          echo "Extracted top-level:"
-          ls -la /tmp/extracted
           TOP=$(find /tmp/extracted -mindepth 1 -maxdepth 1 | head -n 1)
           COUNT=$(find /tmp/extracted -mindepth 1 -maxdepth 1 | wc -l)
           if [ "$COUNT" = "1" ] && [ -d "$TOP" ]; then
@@ -26,15 +22,21 @@ jobs:
           fi
           rm -rf /tmp/extracted
           rm -f HTube-v1.zip
-          rm -f .github/workflows/extract-zip.yml
-          echo "File count after extraction:"
+          echo "Total files in workspace:"
           find . -path ./.git -prune -o -type f -print | wc -l
-          ls -la
-      - name: Commit extracted source
+          echo "Workflow files present in archive (not committed by this bot token):"
+          ls -la .github/workflows/
+      - name: Show source workflow files for manual re-creation
+        run: |
+          echo "=== ci.yml ==="
+          cat .github/workflows/ci.yml || true
+          echo "=== release.yml ==="
+          cat .github/workflows/release.yml || true
+      - name: Commit extracted source excluding workflow files
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git status --short | head -n 100
-          git commit -m "Extract HTube source from HTube-v1.zip" || echo "Nothing to commit"
+          git add -A -- ':!.github/workflows'
+          git status --short | head -n 200
+          git commit -m "Extract HTube source from HTube-v1.zip (workflow files excluded)" || echo "Nothing to commit"
           git push
