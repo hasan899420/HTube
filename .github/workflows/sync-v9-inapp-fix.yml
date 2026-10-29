@@ -1,0 +1,19 @@
+name: Sync v9 inapp fix source
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          mkdir -p /tmp/v9 && unzip -q HTube-v9-inapp-fix.zip -d /tmp/v9
+          rsync -a --delete --exclude '.git' --exclude '.github' --exclude 'HTube-v9-inapp-fix.zip' /tmp/v9/ ./
+          rm -f HTube-v9-inapp-fix.zip
+          git config user.name "hasan899420"
+          git config user.email "hasan899420@users.noreply.github.com"
+          git add -A
+          git commit -m "Sync HTube v9 inapp fix source" || echo "no changes"
+          git push
