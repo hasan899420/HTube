@@ -1,0 +1,19 @@
+name: Sync v6 18plus hide source
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          mkdir -p /tmp/v6 && unzip -q HTube-v6-18plus-hide.zip -d /tmp/v6
+          rsync -a --delete --exclude '.git' --exclude '.github' --exclude 'HTube-v6-18plus-hide.zip' /tmp/v6/ ./
+          rm -f HTube-v6-18plus-hide.zip
+          git config user.name "hasan899420"
+          git config user.email "hasan899420@users.noreply.github.com"
+          git add -A
+          git commit -m "Sync HTube v6 18plus hide source" || echo "no changes"
+          git push
