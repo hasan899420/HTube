@@ -37,9 +37,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mdhasan.htube.core.common.Urls
 import com.mdhasan.htube.core.ui.BrandTile
@@ -56,30 +58,83 @@ fun SiteIcon(name: String, url: String = name) {
     BrandTile(if (brandFor(name) != null) name else url, size = 46.dp, label = name)
 }
 
-// VidMate-style curated 18+ section: text tiles only, no thumbnails.
-// Names are the ones shown in the reference video. The section is hidden
-// by default on every visit to this screen; it is shown only for this
-// visit after the age dialog is confirmed, and Hide hides it again at once.
-private val adultSites = listOf(
+// VidMate-style curated 18+ section: favicon tiles only, no preview thumbnails.
+// The section is hidden by default on every visit to this screen; it is
+// shown only for this visit after the age dialog is confirmed, and Hide
+// hides it again at once. Global + Japanese lists below are exactly the
+// links MD sent 2026-10-30; the "More" list keeps the earlier video names
+// that are not already in those two lists (RedTube URL updated to the
+// .net address MD sent, instead of the earlier .com guess).
+private val globalSites = listOf(
+    "Pornhub" to "https://www.pornhub.com/",
     "XVideos" to "https://www.xvideos.com",
-    "XNXX" to "https://www.xnxx.com",
+    "xHamster" to "https://xhamster.com/",
+    "XNXX" to "https://www.xnxx.com/",
+    "Brazzers" to "https://www.brazzers.com/",
+    "RedTube" to "https://redtube.net/",
+    "Tube8" to "https://www.tube8.com/",
+    "XVideos ES" to "https://www.xvideos.es/",
+)
+private val japaneseSites = listOf(
+    "MissAV" to "https://missav.ws",
+    "JAV Guru" to "https://jav.guru/",
+    "Jable" to "https://jable.tv/",
+    "NJAVTV" to "https://njavtv.com/",
+)
+private val moreAdultSites = listOf(
     "Desigirl" to "https://www.desigirl.com",
     "Dateme" to "https://www.dateme.com",
     "TXXX" to "https://www.txxx.com",
-    "Pornhub" to "https://www.pornhub.com",
     "Eporner" to "https://www.eporner.com",
     "PornGo" to "https://www.porngo.com",
     "XVideos Plus" to "https://www.xvideos.com",
-    "xHamster" to "https://www.xhamster.com",
     "YouPorn" to "https://www.youporn.com",
-    "RedTube" to "https://www.redtube.com",
     "Thumbzilla" to "https://www.thumbzilla.com",
     "Luxe Video" to "https://www.luxevideo.com",
     "Pornxxx" to "https://www.pornxxx.com",
     "Spankbang" to "https://www.spankbang.com",
     "NoodleMagazine" to "https://www.noodlemagazine.com",
-    "tube8" to "https://www.tube8.com",
 )
+
+@Composable
+private fun AdultSiteIcon(name: String, url: String) {
+    // Site favicon (brand mark) so the site is recognisable; if it fails
+    // to load, the initial letter underneath stays visible.
+    val host = url.substringAfter("://").substringBefore("/").removePrefix("www.")
+    Box(
+        Modifier.size(46.dp).clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.primaryContainer),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            name.trim().take(1).uppercase(), color = MaterialTheme.colorScheme.onPrimaryContainer,
+            style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold,
+        )
+        AsyncImage(
+            model = "https://www.google.com/s2/favicons?domain=$host&sz=128",
+            contentDescription = null, contentScale = ContentScale.Fit, modifier = Modifier.size(46.dp),
+        )
+    }
+}
+
+@Composable
+private fun AdultSiteGrid(title: String, sites: List<Pair<String, String>>, onOpen: (String) -> Unit) {
+    Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
+    sites.chunked(4).forEach { row ->
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            row.forEach { (name, url) ->
+                Column(
+                    Modifier.weight(1f).clickable { onOpen(url) }.padding(vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    AdultSiteIcon(name, url)
+                    Text(name, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 4.dp))
+                }
+            }
+            repeat(4 - row.size) { Spacer(Modifier.weight(1f)) }
+        }
+    }
+}
 
 @Composable
 private fun AdultSitesSection(onOpen: (String) -> Unit) {
@@ -98,20 +153,9 @@ private fun AdultSitesSection(onOpen: (String) -> Unit) {
             Spacer(Modifier.height(8.dp))
             Button(onClick = { showAgeDialog = true }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935))) { Text("Show Sites") }
         } else {
-            adultSites.chunked(4).forEach { row ->
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    row.forEach { (name, url) ->
-                        Column(
-                            Modifier.weight(1f).clickable { onOpen(url) }.padding(vertical = 8.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            SiteIcon(name, url)
-                            Text(name, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 4.dp))
-                        }
-                    }
-                    repeat(4 - row.size) { Spacer(Modifier.weight(1f)) }
-                }
-            }
+            AdultSiteGrid("Global Sites", globalSites, onOpen)
+            AdultSiteGrid("Japanese Sites", japaneseSites, onOpen)
+            AdultSiteGrid("More 18+ sites", moreAdultSites, onOpen)
         }
     }
     if (showAgeDialog) {
