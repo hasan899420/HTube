@@ -117,6 +117,22 @@ previews and the search suggestion surfaces were removed.
   the launcher background/foreground, so it picks up the new logo
   automatically.
 
+**Update 2026-10-29 — user-supplied gold logo (MD's own image):**
+the white H + arrow vector above is superseded for the launcher by
+MD's gold metallic "H" with a blue swoosh arrow, supplied by MD on
+2026-10-29. `drawable/ic_launcher_foreground.xml` was removed and
+replaced with `drawable/ic_launcher_foreground.png` (1080x1080:
+gold H mark centred on a dark maroon-to-navy gradient, no text, so
+it stays readable at small sizes and inside adaptive-icon masks);
+`mipmap-*/ic_launcher.png` and `ic_launcher_round.png` were
+regenerated from the same 1080 image at 48/72/96/144/192 px.
+The full supplied banner is preserved in the source as
+`drawable/htube_logo_banner.jpg` (gold H + "HTube" text on the
+circuit background) for future splash/About use; it is not yet
+wired to a screen. Caveat: `ic_launcher_monochrome.xml` was left
+unchanged, so Android 13+ themed icons still show the old black
+H shape, not the gold mark.
+
 ### 4. Smoother / lower latency (safe tweaks only, no feature removed)
 
 - Home tab no longer fires trending + music network calls on launch

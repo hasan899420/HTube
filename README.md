@@ -14,8 +14,10 @@ and licence rules. **This file is only the short version.**
   download, queue, pause/resume, player, browser, settings, vault and
   history all still work. The YouTube and Music tabs still show their feeds
   when you swipe to them — only the home-tab previews were removed.
-- **New original logo:** a bold "H" with a download arrow, on a deep
-  teal-to-indigo background. Not Snaptube's or YouTube's logo.
+- **New logo (2026-10-29, MD's own image):** a gold metallic "H"
+  with a blue swoosh arrow, on a dark background. The full banner
+  (gold H + "HTube" text) is in `drawable/htube_logo_banner.jpg`.
+  Not Snaptube's or YouTube's logo.
 - **A bit smoother:** home no longer loads trending/music on launch,
   search no longer calls the suggestion service while typing, and
   thumbnails no longer crossfade. No features were removed to gain speed
