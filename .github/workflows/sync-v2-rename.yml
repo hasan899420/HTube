@@ -1,0 +1,31 @@
+name: Sync HTube v2 rename
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sync renamed source with deletion
+        run: |
+          set -e
+          mkdir -p /tmp/extracted
+          unzip -o HTube-v2-rename.zip -d /tmp/extracted
+          TOP=$(find /tmp/extracted -mindepth 1 -maxdepth 1 | head -n 1)
+          COUNT=$(find /tmp/extracted -mindepth 1 -maxdepth 1 | wc -l)
+          if [ "$COUNT" = "1" ] && [ -d "$TOP" ]; then SRC="$TOP"; else SRC="/tmp/extracted"; fi
+          echo "Syncing from $SRC"
+          rsync -a --delete --exclude='.git' --exclude='.github' --exclude='HTube-v2-rename.zip' "$SRC/" ./
+          rm -rf /tmp/extracted
+          rm -f HTube-v2-rename.zip
+          echo "Old package path check:"
+          ls app/src/main/java/com/edureminder/quicktube 2>&1 || echo "old path gone"
+          ls app/src/main/java/com/mdhasan/htube/ || true
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git status --short | head -n 200
+          git commit -m "Sync fully renamed HTube v2 source (clean sync, old package paths removed)" || echo "Nothing to commit"
+          git push
