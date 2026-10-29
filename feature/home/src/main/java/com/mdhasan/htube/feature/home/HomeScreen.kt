@@ -219,6 +219,8 @@ private fun DiscoverTab(
                         contentAlignment = Alignment.Center,
                     ) { Icon(QtIcons.Download, null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(34.dp)) }
                     Text("HTube", style = BrandTitle.copy(brush = ex.brand), modifier = Modifier.padding(top = 14.dp))
+                    Text("Hasan®", style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp))
                     Text(
                         "Search, paste a link, or share from any app",
                         style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,

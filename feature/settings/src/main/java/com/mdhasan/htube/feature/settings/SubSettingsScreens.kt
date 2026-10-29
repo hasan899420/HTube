@@ -192,6 +192,8 @@ fun AboutScreen(onBack: () -> Unit) {
                 color = MaterialTheme.colorScheme.onPrimary) }
             Text("HTube", style = BrandTitle.copy(brush = LocalQtExtras.current.brand))
             Text("Version ${appVersion(context)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("Hasan®", style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
             Text(
                 "Search, watch and download videos and music from YouTube and the web. " +
                     "Share any link to HTube to download without leaving the app you're in.",

@@ -117,6 +117,20 @@ previews and the search suggestion surfaces were removed.
   the launcher background/foreground, so it picks up the new logo
   automatically.
 
+**Update 2026-10-29 — user-supplied red logo + Hasan® signature (MD's own image, supersedes gold):**
+MD's second logo (red/silver "H" with a red play triangle, "HTube" text,
+500x500 square) replaces the gold launcher icon as-is:
+`drawable/ic_launcher_foreground.png` is now that 500x500 image and
+`mipmap-*/ic_launcher.png` / `ic_launcher_round.png` were regenerated
+from it; a copy is kept as `drawable/htube_logo_red.png`. The gold
+banner (`htube_logo_banner.jpg`) is still in the source but is no
+longer the launcher icon. Small signature "Hasan®" added in two
+places so anyone using the app sees it: home hero under the HTube
+title (`feature/home/HomeScreen.kt`) and About under the version
+(`feature/settings/SubSettingsScreens.kt`). This is HTube fork
+branding by MD; it does not replace the GPL attribution above and
+does not claim MD wrote the original QuickTube.
+
 **Update 2026-10-29 — user-supplied gold logo (MD's own image):**
 the white H + arrow vector above is superseded for the launcher by
 MD's gold metallic "H" with a blue swoosh arrow, supplied by MD on
