@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -105,8 +106,8 @@ fun VideoPlayerBox(
         modifier
             .background(Color.Black)
             .pointerInput(Unit) {
-                // PointerInputScope is itself a Density, so toPx() works here.
-                val boxHeightPx = maxHeight.toPx().coerceAtLeast(1f)
+                // PointerInputScope has size (px), not BoxWithConstraints' maxHeight.
+                val boxHeightPx = size.height.toFloat().coerceAtLeast(1f)
                 val audio = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
                 val maxVol = audio?.getStreamMaxVolume(AudioManager.STREAM_MUSIC) ?: 0
                 detectVerticalDragGestures(
