@@ -4,13 +4,18 @@ import com.mdhasan.htube.core.designsystem.QtIconButton
 import com.mdhasan.htube.core.designsystem.icon.QtIcons
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -51,6 +56,77 @@ fun SiteIcon(name: String, url: String = name) {
     BrandTile(if (brandFor(name) != null) name else url, size = 46.dp, label = name)
 }
 
+// VidMate-style curated 18+ section: text tiles only, no thumbnails.
+// Names are the ones shown in the reference video. The section is hidden
+// by default on every visit to this screen; it is shown only for this
+// visit after the age dialog is confirmed, and Hide hides it again at once.
+private val adultSites = listOf(
+    "XVideos" to "https://www.xvideos.com",
+    "XNXX" to "https://www.xnxx.com",
+    "Desigirl" to "https://www.desigirl.com",
+    "Dateme" to "https://www.dateme.com",
+    "TXXX" to "https://www.txxx.com",
+    "Pornhub" to "https://www.pornhub.com",
+    "Eporner" to "https://www.eporner.com",
+    "PornGo" to "https://www.porngo.com",
+    "XVideos Plus" to "https://www.xvideos.com",
+    "xHamster" to "https://www.xhamster.com",
+    "YouPorn" to "https://www.youporn.com",
+    "RedTube" to "https://www.redtube.com",
+    "Thumbzilla" to "https://www.thumbzilla.com",
+    "Luxe Video" to "https://www.luxevideo.com",
+    "Pornxxx" to "https://www.pornxxx.com",
+    "Spankbang" to "https://www.spankbang.com",
+    "NoodleMagazine" to "https://www.noodlemagazine.com",
+    "tube8" to "https://www.tube8.com",
+)
+
+@Composable
+private fun AdultSitesSection(onOpen: (String) -> Unit) {
+    var adultShown by remember { mutableStateOf(false) }
+    var showAgeDialog by remember { mutableStateOf(false) }
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("18+ sites", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            if (adultShown) {
+                Button(onClick = { adultShown = false }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935))) { Text("Hide") }
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+        if (!adultShown) {
+            Text("Some sites have been hidden due to your content settings.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(8.dp))
+            Button(onClick = { showAgeDialog = true }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935))) { Text("Show Sites") }
+        } else {
+            adultSites.chunked(4).forEach { row ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    row.forEach { (name, url) ->
+                        Column(
+                            Modifier.weight(1f).clickable { onOpen(url) }.padding(vertical = 8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            SiteIcon(name, url)
+                            Text(name, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 4.dp))
+                        }
+                    }
+                    repeat(4 - row.size) { Spacer(Modifier.weight(1f)) }
+                }
+            }
+        }
+    }
+    if (showAgeDialog) {
+        AlertDialog(
+            onDismissRequest = { showAgeDialog = false },
+            title = { Text("Age Verification") },
+            text = { Text("These websites contain restricted content, including nudity and sexually explicit material. You confirm that you are over 18 years of age, or an adult in the jurisdiction from which you access this site.") },
+            confirmButton = {
+                Button(onClick = { showAgeDialog = false; adultShown = true }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935))) { Text("Confirm") }
+            },
+            dismissButton = { TextButton(onClick = { showAgeDialog = false }) { Text("Cancel") } },
+        )
+    }
+}
+
 @Composable
 fun SitesScreen(onBack: () -> Unit, onOpen: (String) -> Unit, onHistory: () -> Unit) {
     val vm = koinViewModel<SitesViewModel>()
@@ -68,6 +144,7 @@ fun SitesScreen(onBack: () -> Unit, onOpen: (String) -> Unit, onHistory: () -> U
         }
     }) { pad ->
         LazyColumn(Modifier.fillMaxSize().padding(pad)) {
+            item { AdultSitesSection(onOpen) }
             items(sites.size) { i ->
                 val s = sites[i]
                 Row(
