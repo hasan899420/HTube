@@ -44,6 +44,7 @@ class SettingsDataSource(private val context: Context) {
         val playbackSpeed = floatPreferencesKey("playback_speed")
         val onboarded = booleanPreferencesKey("onboarded")
         val analytics = booleanPreferencesKey("analytics")
+        val adsBlocker = booleanPreferencesKey("ads_blocker")
     }
 
     val defaultDownloadDir: String
@@ -77,6 +78,7 @@ class SettingsDataSource(private val context: Context) {
             p[K.playbackSpeed] = s.playbackSpeed
             p[K.onboarded] = s.onboarded
             p[K.analytics] = s.analyticsEnabled
+            p[K.adsBlocker] = s.adsBlockerEnabled
         }
     }
 
@@ -101,6 +103,7 @@ class SettingsDataSource(private val context: Context) {
         playbackSpeed = p[K.playbackSpeed] ?: 1f,
         onboarded = p[K.onboarded] ?: false,
         analyticsEnabled = p[K.analytics] ?: true,
+        adsBlockerEnabled = p[K.adsBlocker] ?: true,
     )
 }
 

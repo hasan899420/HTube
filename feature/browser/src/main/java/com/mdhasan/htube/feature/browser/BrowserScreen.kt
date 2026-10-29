@@ -2,6 +2,7 @@ package com.mdhasan.htube.feature.browser
 
 import com.mdhasan.htube.core.designsystem.QtIconButton
 import com.mdhasan.htube.core.designsystem.icon.QtIcons
+import java.io.ByteArrayInputStream
 import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -75,6 +76,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mdhasan.htube.core.model.AppSettings
+import org.koin.compose.koinInject
 import com.mdhasan.htube.core.common.Urls
 import com.mdhasan.htube.core.playerui.findActivity
 import kotlinx.coroutines.delay
@@ -148,6 +151,45 @@ private const val SILENT_JS = """
 }catch(e){}})();
 """
 
+/**
+ * Ads Blocker (Settings → Ads Blocker, on by default). Network level: any
+ * non-main-frame request to a known ad/tracker host returns an empty
+ * response, so the ad script/image never loads. Page level: AD_HIDE_JS
+ * removes ad iframes/banners that slipped through. This is not 100%:
+ * first-party ads served from the site's own host cannot be blocked by
+ * domain without breaking the video, and new ad domains appear daily.
+ * Video requests (.mp4/.m3u8) are checked before this, so downloads
+ * are never blocked as ads.
+ */
+private val AD_HOSTS = listOf(
+    "doubleclick.net", "googlesyndication.com", "googleads", "adsafeprotected.com",
+    "exoclick.com", "trafficjunky.com", "adnxs.com", "criteo.com", "taboola.com",
+    "outbrain.com", "popads.net", "popcash.net", "adcash.com", "propellerads.com",
+    "adsterra.com", "juicyads.com", "adcolony.com", "inmobi.com", "moatads.com",
+    "scorecardresearch.com", "hotjar.com", "advertising.com", "ads.yahoo.com",
+    "amazon-adsystem.com", "adsrvr.org", "adform.net", "smartadserver.com",
+    "mgid.com", "revcontent.com", "zedo.com", "bidvertiser.com", "clickadu.com",
+    "hilltopads.com", "richads.com", "pushwoosh.com", "onesignal.com",
+)
+
+private fun isAdUrl(url: String): Boolean {
+    val lower = url.lowercase()
+    if (lower.contains("/ads/") || lower.contains("adserver") || lower.contains("popunder")) return true
+    val host = runCatching { android.net.Uri.parse(url).host?.lowercase() }.getOrNull() ?: return false
+    return AD_HOSTS.any { host == it || host.endsWith(".$it") }
+}
+
+private const val AD_HIDE_JS = """
+(function(){try{
+ function hide(){try{
+  document.querySelectorAll('iframe').forEach(function(f){var s=(f.src||'').toLowerCase();
+   if(s.indexOf('doubleclick')>=0||s.indexOf('googlesyndication')>=0||s.indexOf('exoclick')>=0||s.indexOf('trafficjunky')>=0||s.indexOf('/ads/')>=0)f.remove();});
+  document.querySelectorAll('[id^="ad_"],[id^="ads_"],[id^="advert"],[class*="advertisement"],[class*="ad-banner"]').forEach(function(e){e.remove();});
+ }catch(x){}}
+ hide(); setTimeout(hide,1500);
+}catch(e){}})();
+"""
+
 /** Hands the rendered page (after scripts, with the user's session) to the page parser. */
 private fun grabHtml(view: WebView, vm: BrowserViewModel) {
     val url = view.url ?: return
@@ -202,6 +244,11 @@ fun BrowserScreen(
     val ui by vm.ui.collectAsStateWithLifecycle()
     val saved by vm.bookmarked.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    // Ads Blocker toggle from Settings; read live so toggling it and
+    // reloading a page takes effect without restarting the browser.
+    val settingsRepo = koinInject<com.mdhasan.htube.core.data.SettingsRepository>()
+    val appSettings by settingsRepo.settings.collectAsStateWithLifecycle(initialValue = AppSettings())
+    val adsBlockerOn by androidx.compose.runtime.rememberUpdatedState(appSettings.adsBlockerEnabled)
     var webView by remember { mutableStateOf<WebView?>(null) }
     var editing by remember { mutableStateOf(false) }
     var address by remember { mutableStateOf("") }
@@ -399,6 +446,7 @@ fun BrowserScreen(
                             override fun onPageFinished(view: WebView, url: String) {
                                 vm.onPageFinished(url, view.title)
                                 if (silent) view.evaluateJavascript(SILENT_JS, null)
+                                if (adsBlockerOn) view.evaluateJavascript(AD_HIDE_JS, null)
                                 view.evaluateJavascript(SNIFF_JS, null)
                                 grabHtml(view, vm)
                                 // Players often inject their config a moment after load.
@@ -420,10 +468,14 @@ fun BrowserScreen(
                             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
                                 val u = request.url.toString()
                                 val path = request.url.path.orEmpty().lowercase()
+                                // Video first: never let the ad filter eat a download.
                                 if (path.endsWith(".mp4") || path.endsWith(".m4v") || path.endsWith(".m4a") || path.endsWith(".mp3") ||
                                     path.endsWith(".webm") || path.endsWith(".mov") || path.endsWith(".flv") || path.endsWith(".m3u8") ||
                                     u.contains("mime_type=video_mp4") || u.contains(".mp4?") || u.contains(".m3u8?")
                                 ) view.post { vm.onMediaRequest(u) }
+                                else if (adsBlockerOn && !request.isForMainFrame && isAdUrl(u)) {
+                                    return WebResourceResponse("text/plain", "utf-8", ByteArrayInputStream(ByteArray(0)))
+                                }
                                 return null
                             }
                         }

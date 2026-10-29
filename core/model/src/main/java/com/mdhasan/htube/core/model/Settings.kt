@@ -32,6 +32,8 @@ data class AppSettings(
     val onboarded: Boolean = false,
     /** Crash reports + anonymous usage stats (official builds only). */
     val analyticsEnabled: Boolean = true,
+    /** Block ad scripts/banners in the in-app browser (Settings → Ads Blocker). */
+    val adsBlockerEnabled: Boolean = true,
 )
 
 data class Site(

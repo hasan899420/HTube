@@ -91,6 +91,15 @@ fun SettingsScreen(actions: SettingsActions) {
                 NavRow(QtIcons.Public, "Content region", trailing = s.contentRegion.ifBlank { "Auto" }, tint = Teal, onClick = actions.region)
             }
         }
+        item { GroupLabel("Browser") }
+        item {
+            QtCard {
+                SwitchRow(
+                    "Ads Blocker", "Block ad scripts and banners in the in-app browser. Turn off if a site shows an ad-block wall.",
+                    s.adsBlockerEnabled, QtIcons.Shield,
+                ) { v -> vm.update { it.copy(adsBlockerEnabled = v) } }
+            }
+        }
         item { GroupLabel("Download tools") }
         item {
             QtCard {
