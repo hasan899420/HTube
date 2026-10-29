@@ -1,8 +1,12 @@
 package com.mdhasan.htube.core.data
 
+import android.content.Context
+import android.media.MediaScannerConnection
+import android.os.Environment
 import com.mdhasan.htube.core.database.DeletedHistoryDao
 import com.mdhasan.htube.core.database.DeletedHistoryEntity
 import com.mdhasan.htube.core.database.DownloadDao
+import com.mdhasan.htube.core.database.DownloadEntity
 import com.mdhasan.htube.core.database.asEntity
 import com.mdhasan.htube.core.database.asModel
 import kotlinx.coroutines.Dispatchers
@@ -12,21 +16,103 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 
 internal class LibraryRepositoryImpl(
+    private val context: Context,
     private val dao: DownloadDao,
     private val history: DeletedHistoryDao,
 ) : LibraryRepository {
+    // --- Gallery hiding -------------------------------------------------
+    // Vault and Recycle Bin used to flip only a database flag, leaving the
+    // file at its public path, so Gallery/Album kept showing it. Now a
+    // locked/trashed file is MOVED to the app's private filesDir, which
+    // MediaStore never scans, and its original path is kept in a small
+    // sidecar file next to it so Restore/Unlock can put it back exactly
+    // where it was. Delete-forever also tells MediaScanner the old path
+    // is gone, so Gallery does not keep a stale entry.
+    private fun hiddenDir(kind: String): File = File(context.filesDir, "hidden/$kind").apply { mkdirs() }
+
+    private fun moveFile(source: File, target: File): Boolean {
+        if (source.renameTo(target)) return true
+        return runCatching {
+            source.copyTo(target, overwrite = true)
+            source.delete()
+            target.exists()
+        }.getOrDefault(false)
+    }
+
+    private fun uniqueFile(dir: File, name: String): File {
+        var f = File(dir, name)
+        if (!f.exists()) return f
+        val base = name.substringBeforeLast('.', name)
+        val ext = if ('.' in name) ".${name.substringAfterLast('.')}" else ""
+        var n = 1
+        while (f.exists()) f = File(dir, "$base ($n)$ext").also { n++ }
+        return f
+    }
+
+    /** Moves a public file into the private hidden folder. Returns the new path, or null. */
+    private fun hideFile(e: DownloadEntity, kind: String): String? {
+        val old = File(e.filePath)
+        if (!old.exists()) return null
+        val dir = hiddenDir(kind)
+        val target = uniqueFile(dir, "${e.id}_${old.name}")
+        if (!moveFile(old, target)) return null
+        runCatching { File(dir, "${e.id}.path").writeText(old.absolutePath) }
+        // Purge the MediaStore entry for the old public path.
+        MediaScannerConnection.scanFile(context, arrayOf(old.absolutePath), null, null)
+        return target.absolutePath
+    }
+
+    /** Moves a hidden file back to its original public path. Returns the new path, or null. */
+    private fun unhideFile(e: DownloadEntity, kind: String): String? {
+        val hidden = File(e.filePath)
+        if (!hidden.exists()) return null
+        val dir = hiddenDir(kind)
+        val sidecar = File(dir, "${e.id}.path")
+        val originalName = hidden.name.substringAfter('_', hidden.name)
+        val originalPath = runCatching { sidecar.readText().trim() }.getOrNull()?.takeIf { it.isNotBlank() }
+        val target = if (originalPath != null) {
+            val t = File(originalPath)
+            t.parentFile?.mkdirs()
+            if (t.exists() && t != hidden) uniqueFile(t.parentFile!!, t.name) else t
+        } else {
+            val pub = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "HTube").apply { mkdirs() }
+            uniqueFile(pub, originalName)
+        }
+        if (!moveFile(hidden, target)) return null
+        runCatching { sidecar.delete() }
+        MediaScannerConnection.scanFile(context, arrayOf(target.absolutePath), arrayOf(e.mimeType), null)
+        return target.absolutePath
+    }
+
+    private fun deleteSidecar(e: DownloadEntity) {
+        listOf("trash", "vault").forEach { kind ->
+            runCatching { File(hiddenDir(kind), "${e.id}.path").delete() }
+        }
+    }
     override val downloads = dao.observeAll().map { list -> list.map { it.asModel() } }
     override val trash = dao.observeTrash().map { list -> list.map { it.asModel() } }
     override fun observe(id: Long) = dao.observe(id).map { it?.asModel() }
     override suspend fun get(id: Long) = dao.get(id)?.asModel()
 
-    override suspend fun moveToTrash(ids: List<Long>) {
+    override suspend fun moveToTrash(ids: List<Long>) = withContext(Dispatchers.IO) {
         val now = System.currentTimeMillis()
-        ids.forEach { id -> dao.get(id)?.let { dao.update(it.copy(deletedAt = now)) } }
+        ids.forEach { id ->
+            dao.get(id)?.let { e ->
+                // Hiding the file from Gallery is the point of deleting it
+                // from the app, even though it stays recoverable for 30 days.
+                val newPath = if (e.status == com.mdhasan.htube.core.model.DownloadStatus.COMPLETED) hideFile(e, "trash") else null
+                dao.update(e.copy(deletedAt = now, filePath = newPath ?: e.filePath))
+            }
+        }
     }
 
-    override suspend fun restore(ids: List<Long>) {
-        ids.forEach { id -> dao.get(id)?.let { dao.update(it.copy(deletedAt = 0)) } }
+    override suspend fun restore(ids: List<Long>) = withContext(Dispatchers.IO) {
+        ids.forEach { id ->
+            dao.get(id)?.let { e ->
+                val newPath = unhideFile(e, "trash")
+                dao.update(e.copy(deletedAt = 0, filePath = newPath ?: e.filePath))
+            }
+        }
     }
 
     override val deletedHistory = history.observe().map { list -> list.map { it.asModel() } }
@@ -46,11 +132,16 @@ internal class LibraryRepositoryImpl(
         )
         ids.forEach { id ->
             dao.get(id)?.let { e ->
-                File(e.filePath).delete()
+                val main = File(e.filePath)
+                main.delete()
                 File(e.filePath + ".part").delete()
                 File(e.filePath + ".audio.part").delete()
                 File(e.filePath + ".part.idx").delete()
                 File(e.filePath + ".audio.part.idx").delete()
+                deleteSidecar(e)
+                // Without this, Gallery keeps a stale MediaStore entry and
+                // the deleted file still appears in the album.
+                MediaScannerConnection.scanFile(context, arrayOf(main.absolutePath), null, null)
             }
         }
         dao.delete(ids)
@@ -61,8 +152,18 @@ internal class LibraryRepositoryImpl(
         deleteForever(dao.trashOlderThan(before).map { it.id })
     }
 
-    override suspend fun setVault(ids: List<Long>, inVault: Boolean) {
-        ids.forEach { id -> dao.get(id)?.let { dao.update(it.copy(inVault = inVault)) } }
+    override suspend fun setVault(ids: List<Long>, inVault: Boolean) = withContext(Dispatchers.IO) {
+        ids.forEach { id ->
+            dao.get(id)?.let { e ->
+                if (inVault) {
+                    val newPath = hideFile(e, "vault")
+                    dao.update(e.copy(inVault = true, filePath = newPath ?: e.filePath))
+                } else {
+                    val newPath = unhideFile(e, "vault")
+                    dao.update(e.copy(inVault = false, filePath = newPath ?: e.filePath))
+                }
+            }
+        }
     }
 
     override suspend fun rename(id: Long, newTitle: String): Boolean = withContext(Dispatchers.IO) {
@@ -73,6 +174,20 @@ internal class LibraryRepositoryImpl(
         val target = File(old.parentFile, if (ext.isBlank()) safe else "$safe.$ext")
         if (target.exists() && target != old) return@withContext false
         if (old.exists() && !old.renameTo(target)) return@withContext false
+        // If the file is hidden (vault/trash), its sidecar holds the public
+        // original path: rename that too, so Restore/Unlock keeps the new name.
+        val isHidden = "/hidden/" in old.absolutePath
+        if (isHidden) {
+            runCatching {
+                val sidecar = File(old.parentFile, "${e.id}.path")
+                val orig = sidecar.readText().trim()
+                val origFile = File(orig)
+                sidecar.writeText(File(origFile.parentFile, target.name.substringAfter('_', target.name)).absolutePath)
+            }
+        } else {
+            MediaScannerConnection.scanFile(context, arrayOf(old.absolutePath), null, null)
+            MediaScannerConnection.scanFile(context, arrayOf(target.absolutePath), arrayOf(e.mimeType), null)
+        }
         dao.update(e.copy(title = safe, filePath = target.absolutePath))
         true
     }

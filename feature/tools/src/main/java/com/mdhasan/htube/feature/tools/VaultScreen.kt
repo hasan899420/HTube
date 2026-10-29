@@ -81,7 +81,7 @@ private fun VaultContent(vm: VaultViewModel, onOpenPlayer: () -> Unit) {
             listOf("Video", "Music", "Photo").forEachIndexed { i, t -> Tab(tab == i, { tab = i }, text = { Text(t) }) }
         }
         val list = items.filter { it.type == types[tab] || (tab == 2 && it.type == ContentType.OTHER) }
-        if (list.isEmpty()) EmptyBox("Keep your private files here", "Files in Vault won't be seen in Play tab.\nUse “Lock into Vault” from a file's menu.",
+        if (list.isEmpty()) EmptyBox("Keep your private files here", "Files in Vault are moved to a private folder and won't be seen in Gallery or Play tab.\nUse “Lock into Vault” from a file's menu.",
             Modifier.fillMaxSize(), QtIcons.Lock)
         else LazyColumn(Modifier.fillMaxSize()) {
             items(list, key = { it.id }) { t ->

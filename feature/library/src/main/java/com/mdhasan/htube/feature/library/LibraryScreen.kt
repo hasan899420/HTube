@@ -227,7 +227,7 @@ fun LibraryScreen(
     confirmDelete?.let { ids ->
         ConfirmDialog(
             "Delete ${if (ids.size > 1) "${ids.size} files" else "file"}?",
-            "Deleted files stay in the recycle bin for 30 days.",
+            "Deleted files stay in the recycle bin for 30 days and are hidden from Gallery until you recover or delete them permanently.",
             "Delete",
             onConfirm = { vm.delete(ids); selection = null },
             onDismiss = { confirmDelete = null },

@@ -6,11 +6,13 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.pm.ActivityInfo
+import android.media.AudioManager
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -46,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -79,6 +82,15 @@ fun VideoPlayerBox(
     var controlsVisible by remember { mutableStateOf(true) }
     var lastInteraction by remember { mutableStateOf(System.currentTimeMillis()) }
     var seekFeedback by remember { mutableStateOf<String?>(null) }
+    // Vertical-swipe volume / brightness (MX-Player style): left half =
+    // brightness, right half = volume. Previously there was no way at all
+    // to change sound or brightness while a video was playing.
+    var gestureFeedback by remember { mutableStateOf<String?>(null) }
+    var gestureIsBrightness by remember { mutableStateOf(false) }
+    var gestureStartVolume by remember { mutableStateOf(0) }
+    var gestureStartBrightness by remember { mutableStateOf(0.5f) }
+    var gestureDragPx by remember { mutableStateOf(0f) }
+    val context = LocalContext.current
     LaunchedEffect(controlsVisible, lastInteraction, state.isPlaying) {
         if (controlsVisible && state.isPlaying) {
             delay(3500)
@@ -86,11 +98,46 @@ fun VideoPlayerBox(
         }
     }
     LaunchedEffect(seekFeedback) { if (seekFeedback != null) { delay(700); seekFeedback = null } }
+    LaunchedEffect(gestureFeedback) { if (gestureFeedback != null) { delay(900); gestureFeedback = null } }
 
     val ratio = if (state.videoWidth > 0 && state.videoHeight > 0) state.videoWidth.toFloat() / state.videoHeight else 16f / 9f
     BoxWithConstraints(
         modifier
             .background(Color.Black)
+            .pointerInput(Unit) {
+                // PointerInputScope is itself a Density, so toPx() works here.
+                val boxHeightPx = maxHeight.toPx().coerceAtLeast(1f)
+                val audio = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+                val maxVol = audio?.getStreamMaxVolume(AudioManager.STREAM_MUSIC) ?: 0
+                detectVerticalDragGestures(
+                    onDragStart = { offset ->
+                        gestureIsBrightness = offset.x < size.width / 2
+                        gestureDragPx = 0f
+                        gestureStartVolume = audio?.getStreamVolume(AudioManager.STREAM_MUSIC) ?: 0
+                        val winBrightness = context.findActivity()?.window?.attributes?.screenBrightness ?: -1f
+                        gestureStartBrightness = if (winBrightness >= 0f) winBrightness else 0.5f
+                    },
+                    onVerticalDrag = { _, dragAmount ->
+                        gestureDragPx += dragAmount
+                        // Drag up (negative dy) increases, drag down decreases.
+                        val fraction = (-gestureDragPx / boxHeightPx).coerceIn(-1f, 1f)
+                        if (gestureIsBrightness) {
+                            val b = (gestureStartBrightness + fraction).coerceIn(0.05f, 1f)
+                            context.findActivity()?.window?.let { w ->
+                                val attrs = w.attributes
+                                attrs.screenBrightness = b
+                                w.attributes = attrs
+                            }
+                            gestureFeedback = "Brightness ${(b * 100).roundToInt()}%"
+                        } else if (audio != null && maxVol > 0) {
+                            val v = (gestureStartVolume + fraction * maxVol).roundToInt().coerceIn(0, maxVol)
+                            audio.setStreamVolume(AudioManager.STREAM_MUSIC, v, 0)
+                            gestureFeedback = "Volume ${v * 100 / maxVol}%"
+                        }
+                        lastInteraction = System.currentTimeMillis()
+                    },
+                )
+            }
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
@@ -119,6 +166,13 @@ fun VideoPlayerBox(
         seekFeedback?.let {
             Text(it, color = Color.White, style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.clip(CircleShape).background(Color.Black.copy(.5f)).padding(16.dp))
+        }
+        gestureFeedback?.let {
+            Column(horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(Color.Black.copy(.6f)).padding(horizontal = 20.dp, vertical = 12.dp)) {
+                Text(if (gestureIsBrightness) "Brightness" else "Volume", color = Color.White, style = MaterialTheme.typography.labelMedium)
+                Text(it.substringAfter(' '), color = Color.White, style = MaterialTheme.typography.titleLarge)
+            }
         }
         state.error?.let { err ->
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
