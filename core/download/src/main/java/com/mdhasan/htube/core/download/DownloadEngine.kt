@@ -81,7 +81,7 @@ internal class DownloadEngine(
     // which is what makes parallel chunks faster on CDNs that cap per-connection throughput.
     private val http = client.newBuilder()
         .protocols(listOf(Protocol.HTTP_1_1))
-        .connectionPool(ConnectionPool(16, 2, TimeUnit.MINUTES))
+        .connectionPool(ConnectionPool(24, 2, TimeUnit.MINUTES))
         .retryOnConnectionFailure(true)
         .build()
     private val limiter = RateLimiter { settings.current().speedLimitKbps * 1024L }
@@ -634,7 +634,7 @@ internal class DownloadEngine(
     private suspend fun fetchChunk(url: String, headers: Map<String, String>, range: LongRange, channel: FileChannel, counter: AtomicLong, meter: SpeedMeter) {
         var pos = range.first
         var attempt = 0
-        val buf = ByteArray(128 * 1024)
+        val buf = ByteArray(256 * 1024)
         while (pos <= range.last) {
             currentCoroutineContext().ensureActive()
             try {
@@ -684,7 +684,7 @@ internal class DownloadEngine(
                 }
                 resp.body.contentLength().takeIf { it > 0 }?.let { total = done + it; totalRef.set(total) }
                 val input = resp.body.byteStream()
-                val buf = ByteArray(128 * 1024)
+                val buf = ByteArray(256 * 1024)
                 while (true) {
                     currentCoroutineContext().ensureActive()
                     val n = input.read(buf)
@@ -814,9 +814,9 @@ internal class DownloadEngine(
     companion object {
         private const val TAG = "DownloadEngine"
         /** Segments per HLS stream fetched together (held in memory until written in order). */
-        private const val HLS_PARALLEL = 6
+        private const val HLS_PARALLEL = 8
         /** Network transfers in flight across all downloads. */
-        private const val TRANSFERS = 12
+        private const val TRANSFERS = 16
         private const val UA = "Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36"
     }
 }

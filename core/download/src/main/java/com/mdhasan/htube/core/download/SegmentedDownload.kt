@@ -20,8 +20,8 @@ internal object SegmentPlan {
     /** Parallel connections for a file of [total] bytes: more for big files, one for tiny ones. */
     fun connectionsFor(total: Long): Int = when {
         total < 2L * 1024 * 1024 -> 1
-        total < 24L * 1024 * 1024 -> 4
-        else -> 8
+        total < 24L * 1024 * 1024 -> 6
+        else -> 12
     }
 }
 
