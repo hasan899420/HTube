@@ -162,14 +162,34 @@ private const val SILENT_JS = """
  * are never blocked as ads.
  */
 private val AD_HOSTS = listOf(
-    "doubleclick.net", "googlesyndication.com", "googleads", "adsafeprotected.com",
-    "exoclick.com", "trafficjunky.com", "adnxs.com", "criteo.com", "taboola.com",
-    "outbrain.com", "popads.net", "popcash.net", "adcash.com", "propellerads.com",
-    "adsterra.com", "juicyads.com", "adcolony.com", "inmobi.com", "moatads.com",
-    "scorecardresearch.com", "hotjar.com", "advertising.com", "ads.yahoo.com",
-    "amazon-adsystem.com", "adsrvr.org", "adform.net", "smartadserver.com",
-    "mgid.com", "revcontent.com", "zedo.com", "bidvertiser.com", "clickadu.com",
-    "hilltopads.com", "richads.com", "pushwoosh.com", "onesignal.com",
+    // Combined list: EasyList + EasyPrivacy + AdGuard Mobile + Peter Lowe's
+    // ad-server list + adult ad networks. Domain-only blocking (no full
+    // EasyList regex engine in WebView), so this is a curated host list,
+    // not a verbatim copy of any one list. Video CDNs and site hosts are
+    // deliberately NOT in here, so downloads are never blocked as ads.
+    // Google / general ads
+    "doubleclick.net", "googlesyndication.com", "googleads", "googleadservices.com",
+    "adsafeprotected.com", "adsense.com", "adservice.google.com", "pagead2.googlesyndication.com",
+    "advertising.com", "ads.yahoo.com", "amazon-adsystem.com", "adsrvr.org",
+    "adform.net", "smartadserver.com", "adnxs.com", "criteo.com", "rubiconproject.com",
+    "pubmatic.com", "openx.net", "moatads.com", "scorecardresearch.com", "quantserve.com",
+    "hotjar.com", "inmobi.com", "adcolony.com", "appnexus.com", "bidswitch.net",
+    "casalemedia.com", "districtm.io", "sharethrough.com", "triplelift.com",
+    "teads.tv", "outbrain.com", "taboola.com", "mgid.com", "revcontent.com",
+    "zedo.com", "bidvertiser.com", "chocolateplatform.com", "lijit.com",
+    "sonobi.com", "sovrn.com", "yieldmo.com", "rhythmone.com", "conversantmedia.com",
+    // Pop / push / redirect ads
+    "popads.net", "popcash.net", "adcash.com", "propellerads.com", "adsterra.com",
+    "clickadu.com", "hilltopads.com", "richads.com", "pushwoosh.com", "onesignal.com",
+    "richpush.co", "pushengage.com", "subscribers.com", "ad-maven.com", "popmyads.com",
+    "onclickads.net", "propellerads.com", "adcash.com", "trafficstars.com",
+    // Adult ad networks (the sites MD added)
+    "exoclick.com", "trafficjunky.com", "juicyads.com", "plugrush.com", "adxpansion.com",
+    "ero-advertising.com", "trafficforce.com", "adnium.com", "xxxreactor.com",
+    "tubeadvertising.eu", "ads.trafficjunky.net", "cdn1.exoclick.com",
+    // Trackers / analytics that also serve ads
+    "fullstory.com", "mouseflow.com", "crazyegg.com", "luckyorange.com",
+    "matomo.cloud", "stats.wp.com", "pixel.wp.com",
 )
 
 private fun isAdUrl(url: String): Boolean {
@@ -183,7 +203,7 @@ private const val AD_HIDE_JS = """
 (function(){try{
  function hide(){try{
   document.querySelectorAll('iframe').forEach(function(f){var s=(f.src||'').toLowerCase();
-   if(s.indexOf('doubleclick')>=0||s.indexOf('googlesyndication')>=0||s.indexOf('exoclick')>=0||s.indexOf('trafficjunky')>=0||s.indexOf('/ads/')>=0)f.remove();});
+   if(s.indexOf('doubleclick')>=0||s.indexOf('googlesyndication')>=0||s.indexOf('exoclick')>=0||s.indexOf('trafficjunky')>=0||s.indexOf('taboola')>=0||s.indexOf('outbrain')>=0||s.indexOf('mgid')>=0||s.indexOf('adsterra')>=0||s.indexOf('propellerads')>=0||s.indexOf('/ads/')>=0)f.remove();});
   document.querySelectorAll('[id^="ad_"],[id^="ads_"],[id^="advert"],[class*="advertisement"],[class*="ad-banner"]').forEach(function(e){e.remove();});
  }catch(x){}}
  hide(); setTimeout(hide,1500);
