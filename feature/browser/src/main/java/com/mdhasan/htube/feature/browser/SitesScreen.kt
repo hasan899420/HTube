@@ -32,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -119,6 +120,10 @@ private fun AdultSiteIcon(name: String, url: String) {
 
 @Composable
 private fun AdultSiteGrid(title: String, sites: List<Pair<String, String>>, onOpen: (String) -> Unit) {
+    // MD wants these INSIDE the app, not in an external browser, so tap
+    // opens HTube's in-app browser (BrowserRoute via onOpen). The in-app
+    // browser's video detector then shows the Download bar on video pages,
+    // so the video can be downloaded from inside the app.
     Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
     sites.chunked(4).forEach { row ->
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -138,7 +143,9 @@ private fun AdultSiteGrid(title: String, sites: List<Pair<String, String>>, onOp
 
 @Composable
 private fun AdultSitesSection(onOpen: (String) -> Unit) {
-    var adultShown by remember { mutableStateOf(false) }
+    // rememberSaveable (not remember) so going to another screen and back
+    // does not reset this to hidden and force Show Sites + Confirm again.
+    var adultShown by rememberSaveable { mutableStateOf(false) }
     var showAgeDialog by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -153,6 +160,7 @@ private fun AdultSitesSection(onOpen: (String) -> Unit) {
             Spacer(Modifier.height(8.dp))
             Button(onClick = { showAgeDialog = true }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935))) { Text("Show Sites") }
         } else {
+            Text("Tap a site to open it inside HTube. On a video page, tap play and use the Download bar in the app.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             AdultSiteGrid("Global Sites", globalSites, onOpen)
             AdultSiteGrid("Japanese Sites", japaneseSites, onOpen)
             AdultSiteGrid("More 18+ sites", moreAdultSites, onOpen)

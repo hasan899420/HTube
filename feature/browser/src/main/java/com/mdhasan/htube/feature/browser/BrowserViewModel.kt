@@ -46,6 +46,8 @@ data class BrowserUi(
     val title: String = "",
     val progress: Int = 0,
     val canGoBack: Boolean = false,
+    /** Main-frame load failure, shown instead of a blank/black page. */
+    val loadError: String? = null,
     /** The video the user is actually watching; null on listing pages or before playback starts. */
     val mainVideo: PageVideo? = null,
     /** The video the page declares in its player data (known before playback starts). */
@@ -79,6 +81,10 @@ class BrowserViewModel(
 
     fun onPageStarted(url: String) = onNavigated(url)
 
+    fun onLoadError(message: String) = _ui.update { it.copy(loadError = message) }
+
+    fun clearLoadError() = _ui.update { it.copy(loadError = null) }
+
     fun onUrlChanged(url: String, title: String?) {
         onNavigated(url)
         if (title != null) _ui.update { it.copy(title = title) }
@@ -88,11 +94,11 @@ class BrowserViewModel(
     private fun onNavigated(url: String) {
         currentUrl.value = url
         _ui.update { s ->
-            if (s.url.substringBefore('#') == url.substringBefore('#')) s.copy(url = url)
+            if (s.url.substringBefore('#') == url.substringBefore('#')) s.copy(url = url, loadError = null)
             else {
                 val recent = System.currentTimeMillis() - 3000
                 frames.clear()
-                s.copy(url = url, mainVideo = null, pageMedia = null, pageImage = null, sniffed = s.sniffed.filter { it.seenAt >= recent })
+                s.copy(url = url, mainVideo = null, pageMedia = null, pageImage = null, loadError = null, sniffed = s.sniffed.filter { it.seenAt >= recent })
             }
         }
     }

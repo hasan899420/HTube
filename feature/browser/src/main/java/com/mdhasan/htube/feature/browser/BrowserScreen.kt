@@ -14,6 +14,7 @@ import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.URLUtil
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
@@ -48,9 +49,11 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -287,6 +290,20 @@ fun BrowserScreen(
                 }
             }
             if (ui.progress in 1..99) LinearProgressIndicator(progress = { ui.progress / 100f }, modifier = Modifier.fillMaxWidth())
+            ui.loadError?.let { err ->
+                Column(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainer).padding(horizontal = 16.dp, vertical = 12.dp)) {
+                    Text("Page couldn't load", style = MaterialTheme.typography.labelLarge)
+                    Text(err, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+                    Text("If this site blocks the in-app browser, try it in your external browser.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+                    Row(Modifier.padding(top = 8.dp)) {
+                        Button(onClick = { vm.clearLoadError(); webView?.reload() }) { Text("Retry") }
+                        TextButton(onClick = {
+                            vm.clearLoadError()
+                            runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(ui.url))) }
+                        }) { Text("Open in browser") }
+                    }
+                }
+            }
             AndroidView(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 factory = { ctx ->
@@ -294,11 +311,15 @@ fun BrowserScreen(
                         layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                         settings.javaScriptEnabled = true
                         settings.domStorageEnabled = true
+                        settings.databaseEnabled = true
+                        settings.cacheMode = WebSettings.LOAD_DEFAULT
+                        settings.allowContentAccess = true
                         settings.mediaPlaybackRequiresUserGesture = false
                         settings.loadWithOverviewMode = true
                         settings.useWideViewPort = true
                         settings.builtInZoomControls = true
                         settings.displayZoomControls = false
+                        settings.textZoom = 100
                         settings.mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
                         // Ad scripts open pop-ups/pop-unders on any tap; only real links the user tapped may open.
                         settings.javaScriptCanOpenWindowsAutomatically = false
@@ -309,7 +330,13 @@ fun BrowserScreen(
                             WebViewCompat.addDocumentStartJavaScript(this, SNIFF_JS, setOf("*"))
                             if (silent) WebViewCompat.addDocumentStartJavaScript(this, SILENT_JS, setOf("*"))
                         }
-                        vm.userAgent = settings.userAgentString
+                        // Sites that detect WebView (the "wv" marker, or a WebView
+                        // Chrome version) block it and show a blank page, while the
+                        // same site works in Chrome. Use a plain Chrome Android UA
+                        // so the in-app WebView looks like ordinary Chrome.
+                        val cleanUa = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36"
+                        settings.userAgentString = cleanUa
+                        vm.userAgent = cleanUa
                         addJavascriptInterface(object {
                             @JavascriptInterface
                             fun report(json: String) {
@@ -360,6 +387,14 @@ fun BrowserScreen(
                             }
 
                             override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) = vm.onPageStarted(url)
+
+                            override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
+                                if (request.isForMainFrame) vm.onLoadError(error.description?.toString() ?: "Failed to load page")
+                            }
+
+                            override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, errorResponse: WebResourceResponse) {
+                                if (request.isForMainFrame && errorResponse.statusCode >= 400) vm.onLoadError("HTTP ${errorResponse.statusCode}")
+                            }
 
                             override fun onPageFinished(view: WebView, url: String) {
                                 vm.onPageFinished(url, view.title)
