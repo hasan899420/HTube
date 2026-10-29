@@ -1,0 +1,19 @@
+name: Sync v5 3D logo source
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          mkdir -p /tmp/v5 && unzip -q HTube-v5-3d-logo.zip -d /tmp/v5
+          rsync -a --delete --exclude '.git' --exclude '.github' --exclude 'HTube-v5-3d-logo.zip' /tmp/v5/ ./
+          rm -f HTube-v5-3d-logo.zip
+          git config user.name "hasan899420"
+          git config user.email "hasan899420@users.noreply.github.com"
+          git add -A
+          git commit -m "Sync HTube v5 3D logo source" || echo "no changes"
+          git push
