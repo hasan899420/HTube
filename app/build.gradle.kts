@@ -1,7 +1,7 @@
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.quicktube.android.application)
+    alias(libs.plugins.htube.android.application)
     alias(libs.plugins.kotlin.serialization)
 }
 
@@ -19,7 +19,7 @@ val localProps = Properties().apply {
 fun secret(name: String): String? = System.getenv(name) ?: localProps.getProperty(name)
 
 android {
-    namespace = "com.edureminder.quicktube"
+    namespace = "com.mdhasan.htube"
 
     signingConfigs {
         val storePath = secret("RELEASE_KEYSTORE_PATH")
@@ -34,14 +34,14 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.edureminder.quicktube"
+        applicationId = "com.mdhasan.htube"
         // CI sets these from the release run (see .github/workflows/release.yml); local builds are "dev".
         versionCode = (project.findProperty("appVersionCode") as String?)?.toInt() ?: 1
         versionName = (project.findProperty("appVersionName") as String?) ?: "${project.property("appVersionBase")}.0-dev"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // Where the app looks for new versions. Override with -PupdateApiUrl=… to test against a local fake release.
         val updateUrl = (project.findProperty("updateApiUrl") as String?)
-            ?: "https://api.github.com/repos/devgalib/QuickTube/releases/latest"
+            ?: "https://api.github.com/repos/hasan899420/HTube/releases/latest"
         buildConfigField("String", "UPDATE_API_URL", "\"$updateUrl\"")
         buildConfigField("boolean", "UPDATE_URL_OVERRIDDEN", "${project.hasProperty("updateApiUrl")}")
         // Phones only (the bundled Python is per-ABI); keeps the APK small.

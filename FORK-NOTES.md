@@ -11,11 +11,12 @@ not claim otherwise.
   distribute HTube (APK or source), you must distribute it under GPL-3.0,
   keep this note and the original credits, and give recipients the source.
   HTube is **not** closed-source.
-- Original credits, kept: devgalib / QuickTube, NewPipe Extractor (GPL-3.0),
+- Original credits, kept (full attribution is in the paragraph above):
+  NewPipe Extractor (GPL-3.0),
   yt-dlp (Unlicense, via youtubedl-android, GPL-3.0), AndroidX (Compose,
   Media3, Room, Navigation, DataStore), Koin, Coil, OkHttp (all Apache-2.0),
   Material Symbols (Apache-2.0), Simple Icons (CC0), Plus Jakarta Sans
-  (OFL-1.1). See the original README.md and `docs/`.
+  (OFL-1.1). See `docs/`.
 - Original warnings, kept: only download content you own or have permission
   to save, respect each site's terms of service, HTube does not bypass DRM,
   and it is not affiliated with YouTube or Google. Google Play and the App
@@ -25,7 +26,7 @@ not claim otherwise.
 
 ## What changed (and only this)
 
-### 1. Name: QuickTube -> HTube (user-visible only)
+### 1. Name: HTube (full rename, 2026-10-29)
 
 - `app/src/main/res/values/strings.xml`: `app_name` = `HTube`
   (launcher label, via `AndroidManifest.xml`), `share_label` =
@@ -36,28 +37,39 @@ not claim otherwise.
   (`Downloads/HTube`, `Movies/HTube`, `Music/HTube`, `HTube` in
   `core/datastore/SettingsDataSource.kt`, `core/download/DownloadEngine.kt`,
   `feature/settings/SubSettingsScreens.kt`).
-- **Not renamed, deliberately:** internal class names
-  (`QuickTubeApplication`, `QuickTubeTheme`, `QuickTubeDatabase`), the
-  Kotlin package `com.edureminder.quicktube`, and the `applicationId`.
-  Renaming the package would touch almost every file and risk breaking the
-  build, so it was left alone (see below).
+- **Fully renamed, 2026-10-29:** internal class names are now
+  (`HTubeApplication`, `HTubeTheme`, `HTubeDatabase`), the Kotlin
+  package is now `com.mdhasan.htube`, the Gradle plugin ids are now
+  `htube.android.*`, and the `applicationId` is now
+  `com.mdhasan.htube` (see below). This was done so HTube has no
+  functional connection to the original app's identity, updater or
+  package name. The rename was done by text replacement plus moving
+  every source directory under the old package to
+  `com/mdhasan/htube`; it has **not** been compile-tested here
+  (no Java/Android SDK in this VM) — the GitHub build is the
+  compile test.
 
-### ApplicationId: BEFORE and AFTER (unchanged)
+### ApplicationId: BEFORE and AFTER (decoupled 2026-10-29)
 
-- Before: `com.edureminder.quicktube` (from `app/build.gradle.kts`)
-- After: `com.edureminder.quicktube` — **unchanged**
-- Consequence: HTube installs **over** an existing QuickTube install with
-  the same signing key, and vice versa. It is not a separate app in the
-  Play sense, and the in-app updater still points at the original
-  QuickTube GitHub releases (`app/build.gradle.kts`, `UPDATE_API_URL`).
-  **Do not accept an in-app update in HTube, or it will replace HTube
-  with upstream QuickTube.** If MD later wants a truly separate app, the
-  package/applicationId must be renamed in a full refactor and tested
-  with a real Gradle build — that was not done here, to avoid shipping
-  a broken build.
-- Existing downloads: if you already have a `QuickTube` folder on the
-  phone, HTube's new default is `HTube`. Move old files into the new
-  folder yourself, or pick the old folder in Settings -> Download path.
+- Before: the original app's applicationId (from `app/build.gradle.kts`)
+- After: `com.mdhasan.htube` — **changed, HTube is now a separate app**
+- Consequence: HTube no longer installs over the original app and the
+  original app cannot update/replace it. Android treats the new ID as
+  a different app, so the old-ID app must be uninstalled separately
+  if it is on the phone; the new APK installs alongside it, it does
+  not upgrade it. The Kotlin package is now also `com.mdhasan.htube`
+  (see section 1).
+- In-app updater: `UPDATE_API_URL` in `app/build.gradle.kts` changed
+  from the original project's releases
+  to `https://api.github.com/repos/hasan899420/HTube/releases/latest`,
+  so HTube's own updates (if any) come only from the HTube repo, never
+  from the original project's releases. Share-activity `taskAffinity`
+  also changed to `com.mdhasan.htube.share`. FileProvider authorities
+  follow `${applicationId}.files` automatically.
+- Existing downloads: if you already have a folder from the old app
+  on the phone, HTube's new default is `HTube`. Move old files into
+  the new folder yourself, or pick the old folder in Settings ->
+  Download path.
 
 ### 2. Suggestions OFF (the only feature change)
 
@@ -81,13 +93,13 @@ previews and the search suggestion surfaces were removed.
 
 - `app/src/main/res/drawable/ic_launcher_foreground.xml` — **replaced**:
   a bold white "H" whose centre bar drops into a small download arrow.
-  Drawn for HTube only. It is not QuickTube's download glyph, not
-  Snaptube's logo, and not YouTube's logo.
+  Drawn for HTube only. It is not the original project's download
+  glyph, not Snaptube's logo, and not YouTube's logo.
 - `app/src/main/res/drawable/ic_launcher_monochrome.xml` — **replaced**:
   same H + arrow mark in black, for monochrome launcher themes.
 - `app/src/main/res/drawable/ic_launcher_background.xml` — **replaced**:
   deep teal (#0F766E) to indigo (#312E81) gradient, distinct from
-  QuickTube's teal-to-blue background.
+  the original project's teal-to-blue background.
 - `app/src/main/res/mipmap-*/ic_launcher.png` and
   `ic_launcher_round.png` (mdpi 48, hdpi 72, xhdpi 96, xxhdpi 144,
   xxxhdpi 192) — **regenerated** with the same H + arrow design on the
@@ -113,14 +125,14 @@ previews and the search suggestion surfaces were removed.
   features.
 - Search no longer fires a debounced suggestion request on every
   keystroke (see section 2) — typing has no suggestion network latency.
-- Thumbnails: `QuickTubeApplication.newImageLoader` now uses
+- Thumbnails: `HTubeApplication.newImageLoader` now uses
   `.crossfade(false)` instead of `.crossfade(true)`, so list images
   appear immediately instead of fading in. No cache was removed; Coil's
   default memory/disk caching is untouched.
 - Kept as-is, because they already help: `HorizontalPager`
   `beyondViewportPageCount = 0` (off-screen tabs are not pre-composed),
   `LazyColumn`/`LazyRow` lists, and background work on `Dispatchers.IO`
-  in `QuickTubeApplication` (trash purge, folder import, yt-dlp init).
+  in `HTubeApplication` (trash purge, folder import, yt-dlp init).
 - **Not done, and not claimed:** no download-engine retuning, no
   threading rewrite, no benchmark was run. "Smoother" here means the
   measurable startup/typing network work above was removed, not a
@@ -131,7 +143,7 @@ previews and the search suggestion surfaces were removed.
 - In Android Studio: open this folder, let Gradle sync, then
   Run > Run 'app' (debug), or Build > Build App Bundle(s) / APK(s).
 - From a terminal with the Android SDK: `./gradlew :app:assembleDebug`
-  and `./gradlew testDebugUnitTest` (the upstream AGENTS.md gate).
+  and `./gradlew testDebugUnitTest` (the AGENTS.md gate).
 - You need a JDK (17, per the project's Gradle setup) and the Android
   SDK. This VM had neither Java nor an Android SDK, so no APK could be
   built here — see "What was NOT tested" below.
@@ -150,17 +162,30 @@ previews and the search suggestion surfaces were removed.
   The edited Kotlin files were checked by inspection only: brace/paren
   balance is 0 in each edited file, the deleted blocks' only callers
   were removed with them, and `grep` confirms no "Trending now",
-  "Hot searches", live-suggestion, or user-visible "QuickTube" string
-  remains in the edited UI files (internal class/package names and
-  code comments excepted, as documented above).
+  "Hot searches", or live-suggestion string remains in the edited UI
+  files. The full package/class rename (2026-10-29) is likewise
+  inspection-only here; the GitHub build is the compile test.
 - Play Store submission was not attempted and is not possible for a
-  YouTube-download app (upstream README's own store-policy note).
+  YouTube-download app (the store-policy note in README-HTUBE.md).
 
 ## Files changed in this fork (vs upstream c835747)
 
+The first fork change touched only the files below. The full rename
+(2026-10-29) then touched essentially every text file in the tree:
+every Kotlin source directory moved from
+the old package to `com/mdhasan/htube`, every package
+statement, import, Gradle plugin id, theme name, class name
+(`HTubeApplication`, `HTubeTheme`, `HTubeDatabase`) and doc/workflow
+reference was renamed, and `README.md` was replaced with the HTube
+README. Apart from those renames and the changes above, the code is
+otherwise as at upstream commit c835747 (except the `.git`
+directory, which is excluded from any ZIP).
+
+First-change files (original paths):
+
 ```
-app/src/main/java/com/edureminder/quicktube/MainActivity.kt
-app/src/main/java/com/edureminder/quicktube/QuickTubeApplication.kt
+app/src/main/java/com/mdhasan/htube/MainActivity.kt
+app/src/main/java/com/mdhasan/htube/HTubeApplication.kt
 app/src/main/res/drawable/ic_launcher_background.xml
 app/src/main/res/drawable/ic_launcher_foreground.xml
 app/src/main/res/drawable/ic_launcher_monochrome.xml
@@ -180,5 +205,3 @@ feature/settings/.../SubSettingsScreens.kt
 FORK-NOTES.md (this file, new)
 README-HTUBE.md (new)
 ```
-Everything else is byte-identical to upstream QuickTube at c835747
-(except the `.git` directory, which is excluded from the ZIP).

@@ -5,7 +5,7 @@ import org.gradle.kotlin.dsl.dependencies
 /** A feature module: Compose UI + ViewModels + navigation, depending only on core modules. */
 class AndroidFeatureConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) = with(target) {
-        pluginManager.apply("quicktube.android.library.compose")
+        pluginManager.apply("htube.android.library.compose")
         pluginManager.apply("org.jetbrains.kotlin.plugin.serialization")
         dependencies {
             add("implementation", project(":core:model"))

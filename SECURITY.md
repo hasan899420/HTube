@@ -2,12 +2,12 @@
 
 ## Supported versions
 
-Only the latest release on the [Releases page](https://github.com/devgalib/QuickTube/releases) receives security fixes.
+Only the latest release on the [Releases page](https://github.com/hasan899420/HTube/releases) receives security fixes.
 
 ## Reporting a vulnerability
 
 Please **do not** open a public issue. Report it privately through
-[GitHub Security Advisories](https://github.com/devgalib/QuickTube/security/advisories/new).
+[GitHub Security Advisories](https://github.com/hasan899420/HTube/security/advisories/new).
 
 Include what you found, how to reproduce it, and the impact you expect. You'll get an answer within 7 days; once a fix is
 released we'll credit you in the release notes (unless you'd rather stay anonymous).

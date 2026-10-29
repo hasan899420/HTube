@@ -15,7 +15,7 @@ and licence rules. **This file is only the short version.**
   history all still work. The YouTube and Music tabs still show their feeds
   when you swipe to them — only the home-tab previews were removed.
 - **New original logo:** a bold "H" with a download arrow, on a deep
-  teal-to-indigo background. Not QuickTube's, Snaptube's or YouTube's logo.
+  teal-to-indigo background. Not Snaptube's or YouTube's logo.
 - **A bit smoother:** home no longer loads trending/music on launch,
   search no longer calls the suggestion service while typing, and
   thumbnails no longer crossfade. No features were removed to gain speed
@@ -25,9 +25,10 @@ and licence rules. **This file is only the short version.**
 
 Everything else: download engine, formats (144p–4K, M4A/Opus), playlists,
 batch download, browser, player, vault, recycle bin, settings, and all
-credits. ApplicationId is still `com.edureminder.quicktube` (see
-FORK-NOTES.md for why, and for the in-app-updater warning: **do not accept
-an in-app update, or HTube will be replaced by upstream QuickTube**).
+credits. ApplicationId is now `com.mdhasan.htube`, and the in-app
+updater points at the HTube repo (hasan899420/HTube) — HTube is a
+separate app and is no longer updated from any other app's releases.
+See FORK-NOTES.md for the full fork note.
 
 ## How to build (Android Studio, on your PC)
 

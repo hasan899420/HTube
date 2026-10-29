@@ -27,8 +27,8 @@ Examples of unacceptable behavior:
 ## Enforcement
 
 Instances of abusive, harassing or otherwise unacceptable behavior may be reported to the maintainer through
-[GitHub's private reporting](https://github.com/devgalib/QuickTube/security/advisories/new) or by contacting
-[@devgalib](https://github.com/devgalib). All complaints will be reviewed and investigated promptly and fairly.
+[GitHub's private reporting](https://github.com/hasan899420/HTube/security/advisories/new) or by contacting
+[@hasan899420](https://github.com/hasan899420). All complaints will be reviewed and investigated promptly and fairly.
 
 The maintainer may remove, edit or reject comments, commits, code, issues and other contributions that are not aligned with this
 Code of Conduct, and may ban contributors for behavior they deem inappropriate.

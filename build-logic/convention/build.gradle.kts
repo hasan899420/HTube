@@ -2,7 +2,7 @@ plugins {
     `kotlin-dsl`
 }
 
-group = "com.edureminder.quicktube.buildlogic"
+group = "com.mdhasan.htube.buildlogic"
 
 java {
     toolchain { languageVersion.set(JavaLanguageVersion.of(21)) }
@@ -18,23 +18,23 @@ dependencies {
 gradlePlugin {
     plugins {
         register("androidApplication") {
-            id = "quicktube.android.application"
+            id = "htube.android.application"
             implementationClass = "AndroidApplicationConventionPlugin"
         }
         register("androidLibrary") {
-            id = "quicktube.android.library"
+            id = "htube.android.library"
             implementationClass = "AndroidLibraryConventionPlugin"
         }
         register("androidLibraryCompose") {
-            id = "quicktube.android.library.compose"
+            id = "htube.android.library.compose"
             implementationClass = "AndroidLibraryComposeConventionPlugin"
         }
         register("androidFeature") {
-            id = "quicktube.android.feature"
+            id = "htube.android.feature"
             implementationClass = "AndroidFeatureConventionPlugin"
         }
         register("androidRoom") {
-            id = "quicktube.android.room"
+            id = "htube.android.room"
             implementationClass = "AndroidRoomConventionPlugin"
         }
     }

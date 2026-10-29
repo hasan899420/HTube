@@ -1,6 +1,6 @@
 plugins {
-    alias(libs.plugins.quicktube.android.library)
-    alias(libs.plugins.quicktube.android.room)
+    alias(libs.plugins.htube.android.library)
+    alias(libs.plugins.htube.android.room)
 }
 
 dependencies {

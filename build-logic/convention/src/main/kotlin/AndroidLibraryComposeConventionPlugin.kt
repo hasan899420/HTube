@@ -5,7 +5,7 @@ import org.gradle.kotlin.dsl.configure
 
 class AndroidLibraryComposeConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) = with(target) {
-        pluginManager.apply("quicktube.android.library")
+        pluginManager.apply("htube.android.library")
         extensions.configure<LibraryExtension> { configureCompose(this) }
     }
 }

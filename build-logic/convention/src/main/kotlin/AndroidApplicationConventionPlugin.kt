@@ -9,7 +9,7 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
         extensions.configure<ApplicationExtension> {
             configureKotlinAndroid(this)
             configureCompose(this)
-            defaultConfig.targetSdk = QuickTubeSdk.TARGET
+            defaultConfig.targetSdk = HTubeSdk.TARGET
         }
     }
 }

@@ -1,4 +1,4 @@
-# Contributing to QuickTube
+# Contributing to HTube
 
 Thanks for helping! This guide covers how to set up the project, how changes get in, and what we look for in a pull request.
 
@@ -15,8 +15,8 @@ Thanks for helping! This guide covers how to set up the project, how changes get
 Requirements: Android Studio (latest stable) or JDK 21+, Android SDK with API 37.
 
 ```bash
-git clone https://github.com/devgalib/QuickTube.git
-cd QuickTube
+git clone https://github.com/hasan899420/HTube.git
+cd HTube
 ./gradlew :app:installDebug      # build and install on a connected device
 ./gradlew testDebugUnitTest       # unit tests
 ```

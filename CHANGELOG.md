@@ -1,7 +1,7 @@
 # Changelog
 
 Release notes for every version are generated automatically on the
-[Releases page](https://github.com/devgalib/QuickTube/releases) from the merged pull requests.
+[Releases page](https://github.com/hasan899420/HTube/releases) from the merged pull requests.
 
 ## 1.0 (first public release)
 

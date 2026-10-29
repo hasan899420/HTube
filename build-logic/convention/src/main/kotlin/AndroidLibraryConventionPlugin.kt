@@ -9,8 +9,8 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
         pluginManager.apply("com.android.library")
         extensions.configure<LibraryExtension> {
             configureKotlinAndroid(this)
-            // Namespace derived from the module path, e.g. :core:data -> com.edureminder.quicktube.core.data
-            namespace = "com.edureminder.quicktube" + path.replace(':', '.').replace('-', '_')
+            // Namespace derived from the module path, e.g. :core:data -> com.mdhasan.htube.core.data
+            namespace = "com.mdhasan.htube" + path.replace(':', '.').replace('-', '_')
             defaultConfig.consumerProguardFiles("consumer-rules.pro")
         }
         dependencies {

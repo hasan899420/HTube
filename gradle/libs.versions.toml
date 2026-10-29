@@ -99,8 +99,8 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
 firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlyticsPlugin" }
-quicktube-android-application = { id = "quicktube.android.application" }
-quicktube-android-library = { id = "quicktube.android.library" }
-quicktube-android-library-compose = { id = "quicktube.android.library.compose" }
-quicktube-android-feature = { id = "quicktube.android.feature" }
-quicktube-android-room = { id = "quicktube.android.room" }
+htube-android-application = { id = "htube.android.application" }
+htube-android-library = { id = "htube.android.library" }
+htube-android-library-compose = { id = "htube.android.library.compose" }
+htube-android-feature = { id = "htube.android.feature" }
+htube-android-room = { id = "htube.android.room" }

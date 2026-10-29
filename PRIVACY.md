@@ -1,10 +1,10 @@
 # Privacy
 
-QuickTube has no accounts and no servers of its own. Your downloads, history, vault and settings stay on your device.
+HTube has no accounts and no servers of its own. Your downloads, history, vault and settings stay on your device.
 
 ## What the official releases collect
 
-Builds published on the [Releases page](https://github.com/devgalib/QuickTube/releases) include Google Firebase:
+Builds published on the [Releases page](https://github.com/hasan899420/HTube/releases) include Google Firebase:
 
 - **Crashlytics**: crash reports (stack trace, device model, Android version, app version) so we can fix crashes.
 - **Analytics**: anonymous usage counts, for example "a download started" (video or audio, HTTP or HLS) or "a screen was opened".

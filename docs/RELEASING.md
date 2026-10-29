@@ -21,19 +21,19 @@ The workflow then:
    bump it (e.g. to `1.1`) for a feature release. Version codes always increase, so updates install over older versions.
 2. restores the signing key and `google-services.json` from encrypted secrets (they never exist in the repository),
 3. builds `assembleRelease` with R8 and resource shrinking, verifies every APK's signature,
-4. creates the `vX.Y.Z` tag and a GitHub Release with one APK per CPU type (`QuickTube-vX.Y.Z-arm64-v8a.apk`,
-   `QuickTube-vX.Y.Z-armeabi-v7a.apk`, ~35% smaller) plus the universal `QuickTube-vX.Y.Z.apk`, each with a `.sha256`, and
+4. creates the `vX.Y.Z` tag and a GitHub Release with one APK per CPU type (`HTube-vX.Y.Z-arm64-v8a.apk`,
+   `HTube-vX.Y.Z-armeabi-v7a.apk`, ~35% smaller) plus the universal `HTube-vX.Y.Z.apk`, each with a `.sha256`, and
    notes generated from merged PRs. The universal APK and its checksum are uploaded last: versions up to 1.0.3 take the last
    `.apk` asset, so they keep updating correctly.
 
 ## How users get the update
 
-Installed apps check `api.github.com/repos/devgalib/QuickTube/releases/latest` on launch (at most every 6 hours; release
+Installed apps check `api.github.com/repos/hasan899420/HTube/releases/latest` on launch (at most every 6 hours; release
 builds only) and in Settings → Check for updates. When the tag's last number (the versionCode) is higher than theirs, they get an
 "Update available" sheet with the release notes. **Update now** downloads the APK for the phone's CPU (the universal one if
 there's no match), checks it against its `.sha256` asset and
 the installed app's signing key, then installs it with Android's PackageInstaller. Users allow "install unknown apps" for
-QuickTube once; Google Play Protect may also offer to scan the app the first time.
+HTube once; Google Play Protect may also offer to scan the app the first time.
 
 After the update, the downloaded APK is deleted (right away when Android announces the replaced package, otherwise on the next
 start), like the Play Store does. Downloads, history and settings are untouched: they live in the app's database and settings,
@@ -48,11 +48,11 @@ and checksum from that folder with `python3 -m http.server 8765`, and run `adb r
 
 ## Firebase
 
-Project **`quicktube-app`** (Crashlytics + Analytics), Android apps `com.edureminder.quicktube` and `com.edureminder.quicktube.qa`.
+Project **`htube-app`** (Crashlytics + Analytics), Android apps `com.mdhasan.htube` and `com.mdhasan.htube.qa`.
 Maintainers get the config with the Firebase CLI:
 
 ```bash
-firebase apps:sdkconfig ANDROID --project quicktube-app -o app/google-services.json
+firebase apps:sdkconfig ANDROID --project htube-app -o app/google-services.json
 ```
 
 `app/google-services.json` is git-ignored. Collection is off in debug builds and when users opt out (Settings → Privacy).

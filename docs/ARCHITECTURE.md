@@ -4,7 +4,7 @@ Multi-module, feature-sliced Android project. Shared build setup lives in Gradle
 so every module's build file is a few lines long.
 
 ```
-build-logic/convention   quicktube.android.{application,library,library.compose,feature,room}
+build-logic/convention   htube.android.{application,library,library.compose,feature,room}
 app                      Application, MainActivity, ShareActivity, NavHost, Koin wiring
 core/
   model                  Plain data classes (MediaItem, DownloadTask, AppSettings…) — no Android deps
@@ -46,7 +46,7 @@ feature/
 
 1. Create `feature/<name>/build.gradle.kts`:
    ```kotlin
-   plugins { alias(libs.plugins.quicktube.android.feature) }
+   plugins { alias(libs.plugins.htube.android.feature) }
    ```
 2. `include(":feature:<name>")` in `settings.gradle.kts`, and add it to `app/build.gradle.kts`.
 3. Add a route to `core/navigation/Routes.kt`, a `composable<YourRoute>` in `AppNavHost`, and your Koin module to `featureModules`.

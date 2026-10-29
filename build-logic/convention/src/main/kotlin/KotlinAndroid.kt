@@ -6,7 +6,7 @@ import org.gradle.kotlin.dsl.dependencies
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension
 
-object QuickTubeSdk {
+object HTubeSdk {
     const val COMPILE = 37
     const val MIN = 24
     const val TARGET = 37
@@ -15,8 +15,8 @@ object QuickTubeSdk {
 /** Shared Android + Kotlin setup for every module (app and libraries). */
 internal fun Project.configureKotlinAndroid(common: CommonExtension) {
     common.apply {
-        compileSdk = QuickTubeSdk.COMPILE
-        defaultConfig.minSdk = QuickTubeSdk.MIN
+        compileSdk = HTubeSdk.COMPILE
+        defaultConfig.minSdk = HTubeSdk.MIN
         compileOptions.sourceCompatibility = JavaVersion.VERSION_17
         compileOptions.targetCompatibility = JavaVersion.VERSION_17
         compileOptions.isCoreLibraryDesugaringEnabled = true

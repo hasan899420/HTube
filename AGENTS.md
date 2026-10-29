@@ -1,4 +1,4 @@
-# Agent & maintainer rules (QuickTube)
+# Agent & maintainer rules (HTube)
 
 These rules apply to AI coding agents (Claude Code, Copilot, etc.) and humans working in this repository.
 

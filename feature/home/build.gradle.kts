@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.quicktube.android.feature)
+    alias(libs.plugins.htube.android.feature)
 }
 
 dependencies {

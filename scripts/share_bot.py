@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Share-to-download bot: drives an installed QuickTube build on a connected phone exactly like a user does.
+Share-to-download bot: drives an installed HTube build on a connected phone exactly like a user does.
 
-For every link it sends the same SEND intent other apps send when you tap Share -> QuickTube, waits for the
+For every link it sends the same SEND intent other apps send when you tap Share -> HTube, waits for the
 format sheet, taps the best video (up to --max-height) or the audio, waits for the download to finish, pulls the
 file and checks it with ffprobe + a full ffmpeg decode. Nothing inside the app is touched, so it works on
 release builds (R8 + resource shrinking), which is where reflection and keep-rule problems show up.
 
-    ./gradlew :app:installQa            # release build, signed with the debug key, package ...quicktube.qa
+    ./gradlew :app:installQa            # release build, signed with the debug key, package ...htube.qa
     python3 scripts/share_bot.py links.txt --fresh --report bot-report.json
 
 links.txt: one test per line, "name<TAB>url" (or just a url); lines starting with # are skipped.
@@ -24,7 +24,7 @@ import tempfile
 import time
 import xml.etree.ElementTree as ET
 
-DOWNLOAD_DIR = "/storage/emulated/0/Download/QuickTube"
+DOWNLOAD_DIR = "/storage/emulated/0/Download/HTube"
 
 
 def adb(*args, timeout=60, binary=False):
@@ -60,7 +60,7 @@ def tap(x, y):
 def share(package, text):
     shell(
         "am start -a android.intent.action.SEND -t text/plain "
-        f"--es android.intent.extra.TEXT '{text}' -n {package}/com.edureminder.quicktube.share.ShareActivity"
+        f"--es android.intent.extra.TEXT '{text}' -n {package}/com.mdhasan.htube.share.ShareActivity"
     )
 
 
@@ -227,7 +227,7 @@ def probe(path, want_video):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("links")
-    ap.add_argument("--package", default="com.edureminder.quicktube.qa")
+    ap.add_argument("--package", default="com.mdhasan.htube.qa")
     ap.add_argument("--fresh", action="store_true", help="clear the app's data first (first-launch path)")
     ap.add_argument("--audio", action="store_true", help="download the audio option instead of video")
     ap.add_argument("--max-height", type=int, default=1080)

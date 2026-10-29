@@ -53,7 +53,7 @@ for name,slug in BRANDS.items():
     if svg is None: continue
     blines.append(f'    val {name}: ImageVector by lazy {{ brand("{name}", "{d_of(svg)}") }}')
 
-src = '''package com.edureminder.quicktube.core.designsystem.icon
+src = '''package com.mdhasan.htube.core.designsystem.icon
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor

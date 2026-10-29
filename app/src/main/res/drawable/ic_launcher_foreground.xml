@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- HTube original logo (fork of QuickTube, 2026): a bold "H" whose centre
+<!-- HTube original logo (2026): a bold "H" whose centre
      bar drops into a download arrow. Drawn for HTube only; it is not the
-     QuickTube, Snaptube or YouTube logo, and uses no brand artwork. -->
+     Snaptube or YouTube logo, and uses no brand artwork. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
     <path android:fillColor="#FFFFFFFF"
