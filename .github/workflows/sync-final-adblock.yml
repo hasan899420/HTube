@@ -1,0 +1,19 @@
+name: Sync final adblock source
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          mkdir -p /tmp/finalab && unzip -q HTube-final-update-adblock.zip -d /tmp/finalab
+          rsync -a --delete --exclude '.git' --exclude '.github' --exclude 'HTube-final-update-adblock.zip' /tmp/finalab/ ./
+          rm -f HTube-final-update-adblock.zip
+          git config user.name "hasan899420"
+          git config user.email "hasan899420@users.noreply.github.com"
+          git add -A
+          git commit -m "Sync HTube final adblock source" || echo "no changes"
+          git push
