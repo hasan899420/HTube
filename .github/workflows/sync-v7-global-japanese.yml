@@ -1,0 +1,19 @@
+name: Sync v7 global japanese source
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          mkdir -p /tmp/v7 && unzip -q HTube-v7-global-japanese.zip -d /tmp/v7
+          rsync -a --delete --exclude '.git' --exclude '.github' --exclude 'HTube-v7-global-japanese.zip' /tmp/v7/ ./
+          rm -f HTube-v7-global-japanese.zip
+          git config user.name "hasan899420"
+          git config user.email "hasan899420@users.noreply.github.com"
+          git add -A
+          git commit -m "Sync HTube v7 global japanese source" || echo "no changes"
+          git push
